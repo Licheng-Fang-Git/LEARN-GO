@@ -1,0 +1,23 @@
+{{define "header"}}<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{.Title}} · FormServer</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <header class="site">
+    <a class="brand" href="/">◆ FormServer</a>
+    <span class="tag">Go stdlib demo</span>
+  </header>
+  <main class="wrap">
+{{end}}
+
+{{define "footer"}}
+  </main>
+  <footer class="site">
+    <small>FormServer — forms from templates, stored in SQLite · {{.Year}}</small>
+  </footer>
+</body>
+</html>{{end}}

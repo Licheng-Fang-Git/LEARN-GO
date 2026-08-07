@@ -1,0 +1,37 @@
+{{template "header" .}}
+<p class="crumb"><a href="/">← All forms</a></p>
+<h1>Responses · {{.Def.Title}}</h1>
+<p class="meta"><a href="/forms/{{.Def.ID}}">+ New response</a> · <a href="/forms/{{.Def.ID}}/submissions?format=json">JSON</a></p>
+
+{{if .Submissions}}
+<div class="tablewrap">
+<table class="grid">
+  <thead>
+    <tr>
+      <th>#</th>
+      {{range .Def.Fields}}<th>{{.Label}}</th>{{end}}
+      <th>Submitted</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range .Submissions}}
+    {{$sub := .}}
+    <tr>
+      <td><a href="/submissions/{{$sub.ID}}">{{$sub.ID}}</a></td>
+      {{range $.Def.Fields}}<td>{{index $sub.Data .Name}}</td>{{end}}
+      <td class="meta">{{$sub.CreatedAt.Format "2006-01-02 15:04"}}</td>
+      <td>
+        <form method="post" action="/submissions/{{$sub.ID}}/delete" onsubmit="return confirm('Delete response #{{$sub.ID}}?')">
+          <button class="link danger">delete</button>
+        </form>
+      </td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
+</div>
+{{else}}
+<p>No responses yet. <a href="/forms/{{.Def.ID}}">Be the first →</a></p>
+{{end}}
+{{template "footer" .}}

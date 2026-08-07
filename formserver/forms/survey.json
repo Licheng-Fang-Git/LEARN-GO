@@ -1,0 +1,12 @@
+{
+  "id": "survey",
+  "title": "Customer satisfaction survey",
+  "description": "Tell us how we're doing.",
+  "submitLabel": "Send feedback",
+  "fields": [
+    { "name": "name", "label": "Your name", "type": "text", "required": false, "placeholder": "Optional" },
+    { "name": "rating", "label": "Overall rating", "type": "select", "required": true, "options": ["5 - Excellent", "4 - Good", "3 - Okay", "2 - Poor", "1 - Terrible"] },
+    { "name": "recommend", "label": "Would you recommend us?", "type": "radio", "required": true, "options": ["Yes", "Maybe", "No"] },
+    { "name": "comments", "label": "Anything else?", "type": "textarea", "placeholder": "Your thoughts..." }
+  ]
+}

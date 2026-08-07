@@ -1,0 +1,13 @@
+{{template "header" .}}
+<div class="alert ok">
+  <strong>Thanks!</strong> Your response to “{{.FormTitle}}” was recorded as <strong>#{{.Submission.ID}}</strong>.
+</div>
+<h2>What we stored</h2>
+<pre class="data">{{.Pretty}}</pre>
+<p class="meta">
+  <a href="/forms/{{.FormID}}">Submit another</a>
+  · <a href="/forms/{{.FormID}}/submissions">View all responses</a>
+  · <a href="/submissions/{{.Submission.ID}}">Permalink</a>
+  · <a href="/">Home</a>
+</p>
+{{template "footer" .}}

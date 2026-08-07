@@ -1,0 +1,21 @@
+{{template "header" .}}
+<p class="crumb"><a href="/forms/{{.Submission.FormID}}/submissions">← All responses</a></p>
+<h1>Response #{{.Submission.ID}}</h1>
+<p class="meta">
+  Form: <code>{{.Submission.FormID}}</code>
+  · Created {{.Submission.CreatedAt.Format "2006-01-02 15:04:05 MST"}}
+  · <a href="/submissions/{{.Submission.ID}}?format=json">JSON</a>
+</p>
+
+<table class="kv">
+  <tbody>
+    {{range .Rows}}
+    <tr><th>{{.Label}}</th><td>{{.Value}}</td></tr>
+    {{end}}
+  </tbody>
+</table>
+
+<form method="post" action="/submissions/{{.Submission.ID}}/delete" onsubmit="return confirm('Delete this response?')">
+  <button class="danger">Delete this response</button>
+</form>
+{{template "footer" .}}

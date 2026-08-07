@@ -1,0 +1,12 @@
+{
+  "id": "geo",
+  "title": "Report a location",
+  "description": "Submit a set of geographic coordinates and a note.",
+  "submitLabel": "Report location",
+  "fields": [
+    { "name": "label", "label": "Place label", "type": "text", "required": true, "placeholder": "Warehouse A" },
+    { "name": "latitude", "label": "Latitude", "type": "number", "required": true, "placeholder": "40.7128" },
+    { "name": "longitude", "label": "Longitude", "type": "number", "required": true, "placeholder": "-74.0060" },
+    { "name": "note", "label": "Note", "type": "textarea", "placeholder": "Optional details about this location" }
+  ]
+}

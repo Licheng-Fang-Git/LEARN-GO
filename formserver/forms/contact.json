@@ -1,0 +1,12 @@
+{
+  "id": "contact",
+  "title": "Contact us",
+  "description": "Send us a message — asynchronous communication, stored for follow-up.",
+  "submitLabel": "Send message",
+  "fields": [
+    { "name": "name", "label": "Your name", "type": "text", "required": true },
+    { "name": "email", "label": "Reply-to email", "type": "email", "required": true },
+    { "name": "topic", "label": "Topic", "type": "select", "required": true, "options": ["Sales", "Support", "Partnership", "Other"] },
+    { "name": "message", "label": "Message", "type": "textarea", "required": true, "placeholder": "How can we help?" }
+  ]
+}

@@ -1,0 +1,46 @@
+{{template "header" .}}
+<p class="crumb"><a href="/">← All forms</a></p>
+<h1>{{.Def.Title}}</h1>
+{{if .Def.Description}}<p class="lede">{{.Def.Description}}</p>{{end}}
+
+{{if .Errors}}
+<div class="alert error">
+  <strong>Please fix the following:</strong>
+  <ul>{{range .Errors}}<li>{{.}}</li>{{end}}</ul>
+</div>
+{{end}}
+
+<form method="post" action="/forms/{{.Def.ID}}/submit" class="form">
+  {{range .Def.Fields}}
+  {{$field := .}}
+  {{$val := index $.Values $field.Name}}
+  <div class="field">
+    {{if ne $field.Type "checkbox"}}
+    <label for="f_{{$field.Name}}">{{$field.Label}}{{if $field.Required}} <span class="req">*</span>{{end}}</label>
+    {{end}}
+
+    {{if eq $field.Type "textarea"}}
+      <textarea id="f_{{$field.Name}}" name="{{$field.Name}}" placeholder="{{$field.Placeholder}}"{{if $field.Required}} required{{end}}>{{$val}}</textarea>
+    {{else if eq $field.Type "select"}}
+      <select id="f_{{$field.Name}}" name="{{$field.Name}}"{{if $field.Required}} required{{end}}>
+        <option value="">— choose —</option>
+        {{range $field.Options}}<option value="{{.}}"{{if eq . $val}} selected{{end}}>{{.}}</option>{{end}}
+      </select>
+    {{else if eq $field.Type "radio"}}
+      <div class="choices">
+        {{range $field.Options}}
+        <label class="choice"><input type="radio" name="{{$field.Name}}" value="{{.}}"{{if eq . $val}} checked{{end}}{{if $field.Required}} required{{end}}> {{.}}</label>
+        {{end}}
+      </div>
+    {{else if eq $field.Type "checkbox"}}
+      <label class="check"><input type="checkbox" id="f_{{$field.Name}}" name="{{$field.Name}}"{{if $val}} checked{{end}}> {{$field.Label}}{{if $field.Required}} <span class="req">*</span>{{end}}</label>
+    {{else}}
+      <input type="{{$field.Type}}" id="f_{{$field.Name}}" name="{{$field.Name}}" value="{{$val}}" placeholder="{{$field.Placeholder}}"{{if $field.Required}} required{{end}}>
+    {{end}}
+
+    {{if $field.Help}}<small class="help">{{$field.Help}}</small>{{end}}
+  </div>
+  {{end}}
+  <button type="submit">{{.Def.SubmitLabel}}</button>
+</form>
+{{template "footer" .}}

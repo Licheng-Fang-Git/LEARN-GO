@@ -1,0 +1,20 @@
+{{template "header" .}}
+<h1>Available forms</h1>
+<p class="lede">Each card is generated from a JSON file in the <code>forms/</code> directory.</p>
+{{if .Forms}}
+<ul class="cards">
+  {{range .Forms}}
+  <li class="card">
+    <h2><a href="/forms/{{.ID}}">{{.Title}}</a></h2>
+    {{if .Description}}<p>{{.Description}}</p>{{end}}
+    <p class="meta">
+      <a href="/forms/{{.ID}}">Open form →</a>
+      · <a href="/forms/{{.ID}}/submissions">View responses</a>
+    </p>
+  </li>
+  {{end}}
+</ul>
+{{else}}
+<p>No forms defined yet. Drop a <code>.json</code> file into the <code>forms/</code> directory and restart.</p>
+{{end}}
+{{template "footer" .}}
