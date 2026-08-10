@@ -4,6 +4,8 @@ import(
 	"fmt"
 	"bytes"
 	"strings"
+	"unicode"
+	"slices"
 )
 // https://www.boot.dev/lessons/100872fe-eb70-4822-a513-5f1ecde980f4
 
@@ -24,6 +26,23 @@ func NewHeaders() *Headers {
 func checkFieldNameSpacing(before int, after int) bool{
 	return before == after
 }
+
+func checkFieldNameMismatch(fieldName string) bool{
+	noMismatch := false
+	validSpecialChars := []rune{'!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~'}
+	outer:
+	for _,c := range fieldName{
+		switch{
+		case unicode.IsDigit(c): 
+		case unicode.IsLetter(c): 
+		case slices.Index(validSpecialChars, c) != -1:
+		default:
+			noMismatch = true
+			break outer
+		}
+	}
+	return noMismatch
+}
 func (h *Headers) Parse(data []byte) (int, bool, error){
 	n := 0
 	nextHeaderIdx := 0
@@ -34,7 +53,6 @@ func (h *Headers) Parse(data []byte) (int, bool, error){
 	}
 	
 	for{
-		fmt.Println(nextHeaderIdx)
 		if nextHeaderIdx >= len(data){ 
 			return n, true, nil}
 
@@ -59,12 +77,22 @@ func (h *Headers) Parse(data []byte) (int, bool, error){
 			return 0, false, InvalidHeader
 		}
 
+		if checkFieldNameMismatch(fieldName){
+			return 0, false, InvalidHeader
+		}
+		fieldName = strings.ToLower(fieldName)
+
 		fieldValue := strings.TrimSpace(string(nextHeaderLine[colonIdx + 1:idx]))
-		
-		h.headers[strings.ToLower(fieldName)] = fieldValue
+		_,ok := h.headers[fieldName]
+		if ok{
+			h.headers[fieldName] += ", " + fieldValue
+		}else{
+			h.headers[fieldName] = fieldValue}
+
 		nextHeaderIdx += idx+len(CRLF)
 		n += idx + len(CRLF)
 	}
+
 	return n, done, nil
 
 }
