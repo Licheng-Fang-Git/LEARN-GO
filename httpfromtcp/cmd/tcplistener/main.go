@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-
+	"github.com/lichengf/httpfromtcp/internal/request"
 	"net"
-	"request/tests"
 )
 
 func main(){
@@ -23,11 +22,12 @@ func main(){
 			log.Fatal(err)
 		}
 
-		output := (conn)
-		for line := range output{
-			fmt.Println(line)
-		}
-		
+		r, err := request.RequestFromReader(conn)
+
+		fmt.Println("Request Line:")
+		fmt.Println("Method:", r.RequestLine.Method)
+		fmt.Println("Target:", r.RequestLine.RequestTarget)
+		fmt.Println("Version:", r.RequestLine.HttpVersion)
 	}
 	
 }

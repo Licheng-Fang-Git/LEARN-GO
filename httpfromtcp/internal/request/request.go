@@ -52,7 +52,6 @@ var UNSUPPORTED_HTTP_VERSION = fmt.Errorf("HTTP Version unsupported")
 var DONE_STATE = fmt.Errorf("error: trying to read data in a done state")
 var UNKNOWN_STATE = fmt.Errorf("error: unknown state")
 var NO_SEPERATOR = fmt.Errorf("error: No Seperator")
-var bufferSize = 8
 var SEPERATOR = []byte("\r\n")
 
 func validHTTP(version string) bool{
@@ -110,7 +109,6 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 
 		copy(buf, buf[readN:bufLen])
 		bufLen -= readN
-
 
 	}
 	
