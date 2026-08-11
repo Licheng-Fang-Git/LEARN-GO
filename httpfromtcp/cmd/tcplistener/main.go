@@ -23,11 +23,16 @@ func main(){
 		}
 
 		r, err := request.RequestFromReader(conn)
-
+		fmt.Println(err)
 		fmt.Println("Request Line:")
-		fmt.Println("Method:", r.RequestLine.Method)
-		fmt.Println("Target:", r.RequestLine.RequestTarget)
-		fmt.Println("Version:", r.RequestLine.HttpVersion)
+		fmt.Println("- Method:", r.RequestLine.Method)
+		fmt.Println("- Target:", r.RequestLine.RequestTarget)
+		fmt.Println("- Version:", r.RequestLine.HttpVersion)
+		fmt.Println("Headers: ")
+		for _,key := range r.Headers.Headers{
+			fmt.Print("- Key:", r.Headers.Headers[key])
+		}
+
 	}
 	
 }

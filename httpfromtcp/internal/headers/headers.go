@@ -11,6 +11,7 @@ import(
 
 var InvalidHeader = fmt.Errorf("error: Header Invalid No CRLF")
 var HeaderDone = fmt.Errorf("error: Header Done")
+var InvalidKey = fmt.Errorf("error: No Get Key")
 var CRLF = []byte("\r\n")
 
 type Headers struct{
@@ -21,6 +22,14 @@ func NewHeaders() *Headers {
     return &Headers{
 		Headers: map[string]string{},
 	}
+}
+
+func (h *Headers) Get(key string) (string, error){
+	_,ok := h.Headers[key]
+	if ok{
+		return h.Headers[key], nil
+	}
+	return "", 
 }
 
 func checkFieldNameSpacing(before int, after int) bool{
@@ -51,7 +60,7 @@ func (h *Headers) Parse(data []byte) (int, bool, error){
 	if idx == 0{
 		return n, true, nil
 	}
-
+	// fmt.Println(data, string(data))
 	for{
 		if nextHeaderIdx >= len(data){ 
 			return n, false, nil}

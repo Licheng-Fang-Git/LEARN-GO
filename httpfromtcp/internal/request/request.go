@@ -12,6 +12,7 @@ type parserState int
 const (
     Initialized parserState = iota 
 	requestStateParsingHeaders
+	requestStateParsingBody
     Done                    
 	
 )
@@ -19,7 +20,8 @@ const (
 type Request struct {
     RequestLine RequestLine
 	state parserState
-	headers headers.Headers
+	Headers headers.Headers
+	Body []byte
 
 }
 
@@ -38,17 +40,17 @@ func (r *Request) parse(data []byte) (int, error){
 			r.state = requestStateParsingHeaders
 			return n, nil
 		case requestStateParsingHeaders:
-			n, ok, err := r.headers.Parse(data)
+			n, ok, err := r.Headers.Parse(data)
 			if err != nil{
 				return n, nil
 			}
 			if ok{
-				r.state = Done
+				r.state = requestStateParsingBody
 				return n, nil
 			}
 			read += n
 			return read, nil
-
+		case requestStateParsingBody:
 		case Done:
 			return 0, nil
 		}
@@ -108,7 +110,7 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 	var request Request
 	buf := make([]byte, 1024)
 	bufLen := 0
-	request.headers = *headers.NewHeaders()
+	request.Headers = *headers.NewHeaders()
 	
 	for request.state != Done{
 		// fmt.Println(bufLen, readN, "'" + string(buf) + "'")
@@ -127,7 +129,10 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 
 		copy(buf, buf[readN:bufLen])
 		bufLen -= readN
-		
+
+		if request.state == Done {
+        	break
+    	}
 
 	}
 	
