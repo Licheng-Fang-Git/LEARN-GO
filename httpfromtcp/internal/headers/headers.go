@@ -9,17 +9,17 @@ import(
 )
 // https://www.boot.dev/lessons/100872fe-eb70-4822-a513-5f1ecde980f4
 
-var InvalidHeader = fmt.Errorf("error: Header Invalid")
+var InvalidHeader = fmt.Errorf("error: Header Invalid No CRLF")
 var HeaderDone = fmt.Errorf("error: Header Done")
 var CRLF = []byte("\r\n")
 
 type Headers struct{
-	headers map[string] string
+	Headers map[string] string
 }
 
 func NewHeaders() *Headers {
     return &Headers{
-		headers: map[string]string{},
+		Headers: map[string]string{},
 	}
 }
 
@@ -51,10 +51,10 @@ func (h *Headers) Parse(data []byte) (int, bool, error){
 	if idx == 0{
 		return n, true, nil
 	}
-	
+
 	for{
 		if nextHeaderIdx >= len(data){ 
-			return n, true, nil}
+			return n, false, nil}
 
 		idx = bytes.Index(data[nextHeaderIdx:], CRLF)
 		if idx == -1{
@@ -74,23 +74,25 @@ func (h *Headers) Parse(data []byte) (int, bool, error){
 
 		fieldName := strings.TrimSpace(string(nextHeaderLine[:colonIdx]))
 		if !checkFieldNameSpacing(colonIdx, len(fieldName)){
-			return 0, false, InvalidHeader
+			return n, false, InvalidHeader
 		}
 
 		if checkFieldNameMismatch(fieldName){
-			return 0, false, InvalidHeader
+			return n, false, InvalidHeader
 		}
 		fieldName = strings.ToLower(fieldName)
-
 		fieldValue := strings.TrimSpace(string(nextHeaderLine[colonIdx + 1:idx]))
-		_,ok := h.headers[fieldName]
+		
+		_,ok := h.Headers[fieldName]
 		if ok{
-			h.headers[fieldName] += ", " + fieldValue
+			h.Headers[fieldName] += ", " + fieldValue
 		}else{
-			h.headers[fieldName] = fieldValue}
+			h.Headers[fieldName] = fieldValue
+		}
 
-		nextHeaderIdx += idx+len(CRLF)
+		nextHeaderIdx += idx + len(CRLF)
 		n += idx + len(CRLF)
+
 	}
 
 	return n, done, nil

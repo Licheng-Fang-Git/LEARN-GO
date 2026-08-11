@@ -40,14 +40,13 @@ func (r *Request) parse(data []byte) (int, error){
 		case requestStateParsingHeaders:
 			n, ok, err := r.headers.Parse(data)
 			if err != nil{
-				break outer 
+				return n, nil
 			}
 			if ok{
 				r.state = Done
 				return n, nil
 			}
 			read += n
-
 			return read, nil
 
 		case Done:
@@ -107,13 +106,13 @@ func parseRequestLine( b []byte)(*RequestLine, int, error){
 
 func RequestFromReader(reader io.Reader) (*Request, error){
 	var request Request
-	buf := make([]byte, 32)
+	buf := make([]byte, 1024)
 	bufLen := 0
-	bytesRead := 0
-	readN := 0
-	// request.state = requestStateParsingHeaders
+	request.headers = *headers.NewHeaders()
+	
 	for request.state != Done{
-		fmt.Println(bufLen, readN, bytesRead, "'" + string(buf) + "'", "State:", request.state, "He")
+		// fmt.Println(bufLen, readN, "'" + string(buf) + "'")
+
 		n, err := reader.Read(buf[bufLen:])
 		if err != nil{
 			return nil, err
@@ -127,8 +126,8 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 		}
 
 		copy(buf, buf[readN:bufLen])
-		bytesRead += readN
 		bufLen -= readN
+		
 
 	}
 	
