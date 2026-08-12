@@ -29,7 +29,7 @@ func (h *Headers) Get(key string) (string, error){
 	if ok{
 		return h.Headers[key], nil
 	}
-	return "", 
+	return "", nil
 }
 
 func checkFieldNameSpacing(before int, after int) bool{
@@ -60,7 +60,6 @@ func (h *Headers) Parse(data []byte) (int, bool, error){
 	if idx == 0{
 		return n, true, nil
 	}
-	// fmt.Println(data, string(data))
 	for{
 		if nextHeaderIdx >= len(data){ 
 			return n, false, nil}

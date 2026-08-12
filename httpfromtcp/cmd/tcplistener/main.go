@@ -29,8 +29,9 @@ func main(){
 		fmt.Println("- Target:", r.RequestLine.RequestTarget)
 		fmt.Println("- Version:", r.RequestLine.HttpVersion)
 		fmt.Println("Headers: ")
-		for _,key := range r.Headers.Headers{
-			fmt.Print("- Key:", r.Headers.Headers[key])
+		
+		for key,val := range r.Headers.Headers{
+			fmt.Printf("- %s: %s\n", key, val)
 		}
 
 	}

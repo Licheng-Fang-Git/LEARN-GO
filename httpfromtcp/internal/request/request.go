@@ -1,9 +1,10 @@
 package request
 
 import (
+	"bytes"
 	"fmt"
 	"io"
-	"bytes"
+
 	"github.com/lichengf/httpfromtcp/internal/headers"
 )
 
@@ -29,26 +30,29 @@ func (r *Request) parse(data []byte) (int, error){
 	read := 0
 	outer:
 	for{
+		currentData := data[read:]
 		switch r.state{
 		case Initialized:
-			rl, n, err := parseRequestLine(data)
+			rl, n, err := parseRequestLine(currentData)
 			if err != nil{
 				break outer
 			}
 			r.RequestLine = *rl
 			read += n
 			r.state = requestStateParsingHeaders
+
 			return n, nil
 		case requestStateParsingHeaders:
-			n, ok, err := r.Headers.Parse(data)
+			n, ok, err := r.Headers.Parse(currentData)
+
 			if err != nil{
 				return n, nil
 			}
+			read += n
 			if ok{
-				r.state = requestStateParsingBody
+				r.state = Done
 				return n, nil
 			}
-			read += n
 			return read, nil
 		case requestStateParsingBody:
 		case Done:
@@ -108,19 +112,20 @@ func parseRequestLine( b []byte)(*RequestLine, int, error){
 
 func RequestFromReader(reader io.Reader) (*Request, error){
 	var request Request
-	buf := make([]byte, 1024)
+	buf := make([]byte, 32)
 	bufLen := 0
 	request.Headers = *headers.NewHeaders()
-	
+
 	for request.state != Done{
-		// fmt.Println(bufLen, readN, "'" + string(buf) + "'")
-
+		// fmt.Println(bufLen, readN, buf)
+		// fmt.Println(request.state)
 		n, err := reader.Read(buf[bufLen:])
-		if err != nil{
-			return nil, err
-		}
 
+		if err != nil{
+			return nil, err 
+		}
 		bufLen += n
+		
 		readN, err := request.parse(buf[:bufLen])
 
 		if err != nil{
