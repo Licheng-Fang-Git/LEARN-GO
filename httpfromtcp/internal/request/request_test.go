@@ -1,7 +1,7 @@
 package request
 
 import (
-
+	"fmt"
 	"io"
 	"testing"
 
@@ -14,7 +14,7 @@ type chunkReader struct {
     numBytesPerRead int
     pos             int
 }
-
+var Thinking = fmt.Errorf("Hi")
 // Read reads up to len(p) or numBytesPerRead bytes from the string per call
 // its useful for simulating reading a variable number of bytes per chunk from a network connection
 func (cr *chunkReader) Read(p []byte) (n int, err error) {
@@ -31,23 +31,31 @@ func (cr *chunkReader) Read(p []byte) (n int, err error) {
 }
 
 func TestRequestLineParse(t *testing.T) {
-	// Test: Standard Headers
+	// Test: Standard Body
 	reader := &chunkReader{
-		data:            "GET / HTTP/1.1\r\nHost: localhost:42069\r\nUser-Agent: curl/7.81.0\r\nAccept: */*\r\n\r\n",
-		numBytesPerRead: 79,
+		data: "POST /submit HTTP/1.1\r\n" +
+			"Host: localhost:42069\r\n" +
+			"Content-Length: 13\r\n" +
+			"\r\n" +
+			"hello world!\n",
+		numBytesPerRead: 81,
 	}
+
 	r, err := RequestFromReader(reader)
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	assert.Equal(t, "localhost:42069", r.Headers.Headers["host"])
-	assert.Equal(t, "curl/7.81.0", r.Headers.Headers["user-agent"])
-	assert.Equal(t, "*/*", r.Headers.Headers["accept"])
+	assert.Equal(t, "hello world!\n", string(r.Body))
 
-	// Test: Malformed Header
+	// Test: Body shorter than reported content length
 	reader = &chunkReader{
-		data:            "GET / HTTP/1.1\r\nHost localhost:42069\r\n\r\n",
+		data: "POST /submit HTTP/1.1\r\n" +
+			"Host: localhost:42069\r\n" +
+			"Content-Length: 20\r\n" +
+			"\r\n" +
+			"partial content",
 		numBytesPerRead: 3,
 	}
 	r, err = RequestFromReader(reader)
+	fmt.Println(err)
 	require.Error(t, err)
 }

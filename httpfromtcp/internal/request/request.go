@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-
+	"strconv"
 	"github.com/lichengf/httpfromtcp/internal/headers"
 )
 
@@ -28,6 +28,7 @@ type Request struct {
 
 func (r *Request) parse(data []byte) (int, error){
 	read := 0
+	// fmt.Println(data, r.state)
 	outer:
 	for{
 		currentData := data[read:]
@@ -50,11 +51,35 @@ func (r *Request) parse(data []byte) (int, error){
 			}
 			read += n
 			if ok{
-				r.state = Done
+				r.state = requestStateParsingBody
 				return n, nil
 			}
 			return read, nil
+			
 		case requestStateParsingBody:
+			lengthBody, err := r.Headers.Get("content-length")
+
+			if err != nil{
+				return 0, nil
+			}
+			
+			lenb, err := strconv.Atoi(lengthBody)
+			if err != nil{
+				r.state = Done
+				return 0, nil
+			}
+
+			if  len(currentData) > lenb{
+				r.state = Done
+				return 0, BODY_GREATER_THAN_CONTENT_LEN
+			}else if lenb == len(currentData){
+				r.Body = currentData
+				r.state = Done
+				return lenb, nil
+			}else{
+				return 0, nil
+			}
+
 		case Done:
 			return 0, nil
 		}
@@ -73,6 +98,7 @@ var UNSUPPORTED_HTTP_VERSION = fmt.Errorf("HTTP Version unsupported")
 var DONE_STATE = fmt.Errorf("error: trying to read data in a done state")
 var UNKNOWN_STATE = fmt.Errorf("error: unknown state")
 var NO_SEPERATOR = fmt.Errorf("error: No Seperator")
+var BODY_GREATER_THAN_CONTENT_LEN = fmt.Errorf("error: BODY_GREATER_THAN_CONTENT_LEN")
 var SEPERATOR = []byte("\r\n")
 
 func validHTTP(version string) bool{
@@ -122,6 +148,14 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 		n, err := reader.Read(buf[bufLen:])
 
 		if err != nil{
+			_, errH := request.Headers.Get("content-length")
+
+			if err == io.EOF && errH != nil{
+				request.Body = buf[:bufLen]
+				request.state = Done
+				return &request, nil
+			}
+			
 			return nil, err 
 		}
 		bufLen += n
@@ -129,6 +163,7 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 		readN, err := request.parse(buf[:bufLen])
 
 		if err != nil{
+			
 			return nil, err
 		}
 
