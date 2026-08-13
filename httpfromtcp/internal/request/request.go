@@ -11,10 +11,10 @@ import (
 type parserState int
 
 const (
-    Initialized parserState = iota 
-	requestStateParsingHeaders
-	requestStateParsingBody
-    Done                    
+    Initialized parserState = iota //0
+	requestStateParsingHeaders //1
+	requestStateParsingBody //2
+    Done                    //3
 	
 )
 
@@ -32,9 +32,11 @@ func (r *Request) parse(data []byte) (int, error){
 	outer:
 	for{
 		currentData := data[read:]
+		// fmt.Println(string(currentData), r.state)
 		switch r.state{
 		case Initialized:
 			rl, n, err := parseRequestLine(currentData)
+			fmt.Println(rl, n, err)
 			if err != nil{
 				break outer
 			}
@@ -42,33 +44,34 @@ func (r *Request) parse(data []byte) (int, error){
 			read += n
 			r.state = requestStateParsingHeaders
 
-			return n, nil
+			// return n, nil
 		case requestStateParsingHeaders:
+			fmt.Println("Headers Hit")
 			n, ok, err := r.Headers.Parse(currentData)
-
+			fmt.Println(n,ok,err)
 			if err != nil{
 				return n, nil
 			}
 			read += n
 			if ok{
 				r.state = requestStateParsingBody
-				return n, nil
 			}
-			return read, nil
+			// return read, nil
 			
 		case requestStateParsingBody:
+			fmt.Println("Body Hit")
 			lengthBody, err := r.Headers.Get("content-length")
-
+			fmt.Println(lengthBody, err)
 			if err != nil{
 				return 0, nil
 			}
-			
+
 			lenb, err := strconv.Atoi(lengthBody)
 			if err != nil{
 				r.state = Done
 				return 0, nil
 			}
-
+			
 			if  len(currentData) > lenb{
 				r.state = Done
 				return 0, BODY_GREATER_THAN_CONTENT_LEN
@@ -138,18 +141,17 @@ func parseRequestLine( b []byte)(*RequestLine, int, error){
 
 func RequestFromReader(reader io.Reader) (*Request, error){
 	var request Request
-	buf := make([]byte, 32)
+	buf := make([]byte, 1024)
 	bufLen := 0
 	request.Headers = *headers.NewHeaders()
-
+	
 	for request.state != Done{
-		// fmt.Println(bufLen, readN, buf)
+		// fmt.Println(bufLen, readN, string(buf))
 		// fmt.Println(request.state)
 		n, err := reader.Read(buf[bufLen:])
 
 		if err != nil{
 			_, errH := request.Headers.Get("content-length")
-
 			if err == io.EOF && errH != nil{
 				request.Body = buf[:bufLen]
 				request.state = Done

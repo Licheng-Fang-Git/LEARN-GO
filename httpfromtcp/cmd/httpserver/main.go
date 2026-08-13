@@ -1,7 +1,11 @@
 package main
 
-import(
+import (
 	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"github.com/lichengf/httpfromtcp/internal/server"
 )
 
 const port = 42069

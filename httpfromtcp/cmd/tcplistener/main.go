@@ -23,7 +23,7 @@ func main(){
 		}
 
 		r, err := request.RequestFromReader(conn)
-		fmt.Println(err)
+
 		fmt.Println("Request Line:")
 		fmt.Println("- Method:", r.RequestLine.Method)
 		fmt.Println("- Target:", r.RequestLine.RequestTarget)
@@ -34,7 +34,7 @@ func main(){
 			fmt.Printf("- %s: %s\n", key, val)
 		}
 		fmt.Println("Body:")
-		fmt.Println(r.Body)
+		fmt.Println(string(r.Body))
 
 	}
 	
