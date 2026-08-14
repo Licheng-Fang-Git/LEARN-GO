@@ -11,7 +11,7 @@ import (
 const port = 42069
 
 func main() {
-    server, err := server.Serve(port)
+    server, err := server.Serve(port, func(w io.Writer, req *request.Request) *HandlerError)
     if err != nil {
         log.Fatalf("Error starting server: %v", err)
     }
