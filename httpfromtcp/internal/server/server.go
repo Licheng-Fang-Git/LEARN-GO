@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"bytes"
-	"github.com/lichengf/httpfromtcp/internal/response"
+	
 	"github.com/lichengf/httpfromtcp/internal/request"
+	"github.com/lichengf/httpfromtcp/internal/response"
 )
-type Handler func(w io.Writer, req *request.Request) *HandlerError
+
+type Handler func(w *response.Writer, req *request.Request)
 
 type Server struct{
 	closed bool
@@ -51,27 +52,15 @@ func (s *Server) Close(){
 
 func (s *Server) handle(conn io.ReadWriteCloser){
 	defer conn.Close()
-	h := response.GetDefaultHeaders(0)
 	request, err := request.RequestFromReader(conn)
-	
+	responseWriter := response.NewWriter(conn)
+
 	if err != nil{
-		response.WriteStatusLine(conn, 400)
-		response.WriteHeaders(conn, h)
+		responseWriter.WriteStatusLine(response.Status400)
+		headers := response.GetDefaultHeaders(0)
+		responseWriter.WriteHeaders(headers)
 		return 
 	}
-	writer := bytes.NewBuffer([]byte{})
-	handlerError := s.handler(writer, request)
-	body := writer.Bytes()
-	if handlerError != nil{
-		response.WriteStatusLine(conn, handlerError.Status)
-		h.Replace("content-length", fmt.Sprintf("%d", len(body)))
-		response.WriteHeaders(conn, h)
-		conn.Write([]byte(handlerError.Message))
-		return 
-	}
-	fmt.Print(string(body))
-	response.WriteStatusLine(conn, 200)
-	h.Replace("content-length", fmt.Sprintf("%d", len(body)))
-	response.WriteHeaders(conn, h)
-	conn.Write(body)
+	
+	s.handler(responseWriter, request)
 }

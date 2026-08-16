@@ -1,12 +1,12 @@
 package main
 
 import (
-	"io"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-
+    
 	"github.com/lichengf/httpfromtcp/internal/request"
 	"github.com/lichengf/httpfromtcp/internal/response"
 	"github.com/lichengf/httpfromtcp/internal/server"
@@ -15,24 +15,27 @@ import (
 const port = 42069
 
 func main() {
-    server, err := server.Serve(port, func(w io.Writer, req *request.Request) *server.HandlerError{
-        handleError := &server.HandlerError{Status: response.Status200, Message: ""}
+    server, err := server.Serve(port, func(w *response.Writer, req *request.Request) {
+        h := response.GetDefaultHeaders(0)
+        body := []byte{}
         switch req.RequestLine.RequestTarget {
         case "/yourproblem":
-            w.Write([]byte("Your problem is not my problem\n"))
-            handleError.Status = response.Status400
-            handleError.Message = "Your problem is not my problem\n"
-            return handleError
+            w.WriteStatusLine(response.Status400)
+            body = []byte("Your problem is not my problem\n")
         case "/myproblem":
-            w.Write([]byte("Woopsie, my bad\n"))
-            handleError.Status = response.Status500
-            handleError.Message = "Woopsie, my bad\n"
-            return handleError
+            w.WriteStatusLine(response.Status500)
+            body = []byte("Woopsie, my bad\n")
         default:
-            w.Write([]byte("All good, frfr\n"))
-            return nil
+            w.WriteStatusLine(response.Status200)
+            body = []byte("All good frfr\n")
         }
+        h.Replace("content-length", fmt.Sprintf("%d", body))
+        w.WriteHeaders(h)
+        w.WriteBody([]byte("Your problem is not my problem\n"))
+
     })
+
+
 
     if err != nil {
         log.Fatalf("Error starting server: %v", err)
