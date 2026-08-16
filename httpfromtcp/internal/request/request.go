@@ -36,7 +36,7 @@ func (r *Request) parse(data []byte) (int, error){
 		switch r.state{
 		case Initialized:
 			rl, n, err := parseRequestLine(currentData)
-			fmt.Println(rl, n, err)
+			// fmt.Println(rl, n, err)
 			if err != nil{
 				break outer
 			}
@@ -46,9 +46,9 @@ func (r *Request) parse(data []byte) (int, error){
 
 			// return n, nil
 		case requestStateParsingHeaders:
-			fmt.Println("Headers Hit")
+			// fmt.Println("Headers Hit")
 			n, ok, err := r.Headers.Parse(currentData)
-			fmt.Println(n,ok,err)
+			// fmt.Println(n,ok,err)
 			if err != nil{
 				return n, nil
 			}
@@ -59,11 +59,11 @@ func (r *Request) parse(data []byte) (int, error){
 			// return read, nil
 			
 		case requestStateParsingBody:
-			fmt.Println("Body Hit")
 			lengthBody, err := r.Headers.Get("content-length")
-			fmt.Println(lengthBody, err)
 			if err != nil{
-				return 0, nil
+				r.state = Done
+				r.Body = nil
+				return read, nil
 			}
 
 			lenb, err := strconv.Atoi(lengthBody)
@@ -80,11 +80,11 @@ func (r *Request) parse(data []byte) (int, error){
 				r.state = Done
 				return lenb, nil
 			}else{
-				return 0, nil
+				return read, nil
 			}
 
 		case Done:
-			return 0, nil
+			return read, nil
 		}
 	}
 	return read, nil
@@ -144,20 +144,19 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 	buf := make([]byte, 1024)
 	bufLen := 0
 	request.Headers = *headers.NewHeaders()
-	
 	for request.state != Done{
-		// fmt.Println(bufLen, readN, string(buf))
+		// fmt.Println(bufLen, readN, string(buf[:bufLen]))
 		// fmt.Println(request.state)
+		
 		n, err := reader.Read(buf[bufLen:])
-
+		
 		if err != nil{
-			_, errH := request.Headers.Get("content-length")
-			if err == io.EOF && errH != nil{
-				request.Body = buf[:bufLen]
-				request.state = Done
-				return &request, nil
-			}
-			
+			// _, errH := request.Headers.Get("content-length")
+			// if err == io.EOF && errH != nil{
+			// 	request.Body = buf[:bufLen]
+			// 	request.state = Done
+			// 	return &request, nil
+			// }
 			return nil, err 
 		}
 		bufLen += n
@@ -165,7 +164,6 @@ func RequestFromReader(reader io.Reader) (*Request, error){
 		readN, err := request.parse(buf[:bufLen])
 
 		if err != nil{
-			
 			return nil, err
 		}
 
@@ -177,7 +175,7 @@ func RequestFromReader(reader io.Reader) (*Request, error){
     	}
 
 	}
-	
+
 	return &request, nil
 	
 }

@@ -8,18 +8,17 @@ import (
 	"github.com/lichengf/httpfromtcp/internal/response"
 	"github.com/lichengf/httpfromtcp/internal/request"
 )
+type Handler func(w io.Writer, req *request.Request) *HandlerError
 
 type Server struct{
 	closed bool
 	handler Handler
 }
 type HandlerError struct{
-	status response.StatusCode
-	message string
+	Status response.StatusCode
+	Message string
 }
-type Handler func(w io.Writer, req *request.Request) *HandlerError{
 
-}
 
 func runServer(listener net.Listener, server *Server){
 	for{
@@ -30,17 +29,17 @@ func runServer(listener net.Listener, server *Server){
 		if err != nil{
 			return 
 		}
-		server.handle(conn, handler)
+		server.handle(conn)
 	}
 
 }
 
-func Serve(port int, handler *Handler) (*Server, error){
+func Serve(port int, handler Handler) (*Server, error){
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", port)) 
 	if err != nil{
 		return nil, err
 	}
-	server := &Server{ closed: false}
+	server := &Server{ closed: false, handler: handler }
 	
 	go runServer(listener, server)
 	return server, nil
@@ -54,17 +53,25 @@ func (s *Server) handle(conn io.ReadWriteCloser){
 	defer conn.Close()
 	h := response.GetDefaultHeaders(0)
 	request, err := request.RequestFromReader(conn)
+	
 	if err != nil{
 		response.WriteStatusLine(conn, 400)
 		response.WriteHeaders(conn, h)
+		return 
 	}
 	writer := bytes.NewBuffer([]byte{})
-	s.handler(writer,request)
+	handlerError := s.handler(writer, request)
+	body := writer.Bytes()
+	if handlerError != nil{
+		response.WriteStatusLine(conn, handlerError.Status)
+		h.Replace("content-length", fmt.Sprintf("%d", len(body)))
+		response.WriteHeaders(conn, h)
+		conn.Write([]byte(handlerError.Message))
+		return 
+	}
+	fmt.Print(string(body))
 	response.WriteStatusLine(conn, 200)
-	h := response.GetDefaultHeaders(0)
+	h.Replace("content-length", fmt.Sprintf("%d", len(body)))
 	response.WriteHeaders(conn, h)
-	// out := []byte("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nHello World!\n")
-	// conn.Write(out)
-	conn.Close()
-
+	conn.Write(body)
 }

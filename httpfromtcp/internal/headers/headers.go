@@ -52,6 +52,14 @@ func checkFieldNameMismatch(fieldName string) bool{
 	}
 	return noMismatch
 }
+
+func (h *Headers) Replace(fieldName string, length string){
+	_,ok := h.Headers[fieldName]
+	if ok{
+		h.Headers[fieldName] = length
+	}
+}
+
 func (h *Headers) Parse(data []byte) (int, bool, error){
 	n := 0
 	nextHeaderIdx := 0

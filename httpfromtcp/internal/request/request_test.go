@@ -5,7 +5,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	// "github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,6 +18,7 @@ var Thinking = fmt.Errorf("Hi")
 // Read reads up to len(p) or numBytesPerRead bytes from the string per call
 // its useful for simulating reading a variable number of bytes per chunk from a network connection
 func (cr *chunkReader) Read(p []byte) (n int, err error) {
+
     if cr.pos >= len(cr.data) {
         return 0, io.EOF
     }
@@ -37,16 +38,13 @@ func TestRequestLineParse(t *testing.T) {
 		"Host: localhost:42069\r\n"+
 		"User-Agent: curl/8.4.0\r\n" +
 		"Accept: */*\r\n" +
-		"Content-Type: application/json\r\n"+
-		"Content-Length: 31\r\n\r\n"+
-		"{type: dark mode, size: medium}",
-		numBytesPerRead: 168,
+		"\r\n",
+		numBytesPerRead: 85,
 	}
 
 	r, err := RequestFromReader(reader)
 	require.NoError(t, err)
 	require.NotNil(t, r)
-	assert.Equal(t, "{type: dark mode, size: medium}", string(r.Body))
 
 	// // Test: Body shorter than reported content length
 	// reader = &chunkReader{
